@@ -1,0 +1,80 @@
+buildscript {
+	ext {
+		springBootVersion = '2.0.4.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'scala'
+apply plugin: 'application'
+apply plugin: 'jacoco'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+
+group = 'pl.pieszala.test'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+	jcenter()
+	mavenCentral()
+}
+
+ext {
+    swaggerVersion = '2.8.0'
+    springBootVersion = '2.0.4.RELEASE'
+    jacksonVersion = '2.9.4'
+    retrofitVersion = '2.4.0'
+}
+
+dependencies {
+    compile     group: 'org.scala-lang', 				 name: 'scala-library', 			  version: '2.12.5'
+    compile     group: 'org.scala-lang', 				 name: 'scala-library', 			  version: '2.12.5'
+    compile     group: 'org.springframework.boot',       name: 'spring-boot-starter-web',     version: springBootVersion
+    compile     group: 'com.typesafe.scala-logging',     name: 'scala-logging_2.12',          version: '3.7.1'
+    compile     group: 'org.scala-lang.modules',         name: 'scala-java8-compat_2.12',     version: '0.8.0'
+    compile     group: 'com.fasterxml.jackson.module', 	 name: 'jackson-module-scala_2.12',   version: jacksonVersion
+    compile     group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310',     version: jacksonVersion
+    compile     group: 'io.springfox', 					 name: 'springfox-swagger2', 		  version: swaggerVersion
+    compile     group: 'io.springfox', 					 name: 'springfox-swagger-ui', 		  version: swaggerVersion
+    compile     group: 'com.google.guava',               name: 'guava',                       version: '25.1-jre'
+
+    //compile     group: 'mysql',                          name: 'mysql-connector-java',        version: '8.0.12'
+    //compile     group: 'org.flywaydb',                   name: 'flyway-core',                 version: '5.0.7'
+    compile     group: 'com.typesafe.slick',             name: 'slick_2.12',                  version: '3.2.2'
+    compile     group: 'com.zaxxer',                     name: 'HikariCP',                    version: '3.2.0'
+    compile     group: 'pl.iterators',                   name: 'kebs-slick_2.12',             version: '1.5.2'
+    compile     group: 'com.beachape',                   name: 'enumeratum_2.12',             version: '1.5.12'
+    compile     group: 'com.h2database',                 name: 'h2',                          version: '1.4.197'
+    compile     group: 'org.springframework',            name: 'spring-jdbc',                 version: '3.0.4.RELEASE'
+
+    testCompile group: 'org.springframework.boot',       name: 'spring-boot-starter-test',    version: springBootVersion
+    testCompile group: 'org.scalatest',                  name: 'scalatest_2.12',              version: '3.0.5'
+    testCompile group: 'org.mockito',                    name: 'mockito-core',                version: '2.18.0'
+    testCompile group: 'cglib',                          name: 'cglib-nodep',                 version: '3.2.2'
+    testCompile group: 'com.github.tomakehurst',         name: 'wiremock',                    version: '2.17.0'
+
+    testRuntime group: 'org.pegdown',                    name: 'pegdown',                     version: '1.6.0'
+}
+
+mainClassName = 'com.puffin.CinemaApplication'
+
+test {
+    testLogging {
+        exceptionFormat = 'full'
+    }
+}
+
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.additionalParameters = ["-feature", "-deprecation", "-Xlint:_,-missing-interpolator"]
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.8'
+}
