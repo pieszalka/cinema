@@ -22,7 +22,7 @@ Differences are applied while building final response model in endpoint so there
 few versions of application domain logic.
 
 2. How to run application
-- checkout code from
+- checkout code from https://github.com/pieszalka/cinema
 - got to project directory "cd cinema"
 - copy create database file to home directory "cp src/main/resources/create.sql ~/"
 - run application "./gradlew run"
