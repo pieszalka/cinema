@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 @Component
 class SlickMoviesRepository(
@@ -24,48 +24,41 @@ class SlickMoviesRepository(
   import profile.api._
 
   override def getByMovieId(movieId: MovieId): Option[Movie] = {
-    Await.result(
+    waitForResult(
       dBProvider().run(
         MovieQueries.findOneQuery(movieId).result.headOption
       ).map(
         movieDBOption => movieDBOption.map(toMovie)
-      ),
-      10.seconds
+      )
     )
   }
 
   override def getByCategory(category: CategoryType): List[Movie] = {
-    Await.result(
+    waitForResult(
       dBProvider().run(
         MovieQueries.findByCategoryQuery(category.toString).result
-      ).map(movies => movies.map(toMovie).toList),
-      10.seconds
+      ).map(movies => movies.map(toMovie).toList)
     )
   }
 
   override def getByMovieIds(movieIds: List[MovieId]): List[Movie] = {
-    Await.result(
+    waitForResult(
       dBProvider().run(
         MovieQueries.movies.result
-      ).map(movies => movies.filter(movie => movieIds.contains(movie.id)).map(toMovie).toList),
-      10.seconds
+      ).map(movies => movies.filter(movie => movieIds.contains(movie.id)).map(toMovie).toList)
     )
   }
 
   override def getOrderedByCreateDate(limit: Int): List[Movie] = {
-    Await.result(
+    waitForResult(
       dBProvider().run(
         MovieQueries.findOrdered(limit).result
-      ).map(movies => movies.map(toMovie).toList),
-      10.seconds
+      ).map(movies => movies.map(toMovie).toList)
     )
   }
 
   override def create(movie: Movie): Boolean = {
-    Await.result(
-      dBProvider().run(MovieQueries.movies.insertOrUpdate(toMovieDB(movie)).map(_ == 1)),
-      10.seconds
-    )
+    waitForResult(dBProvider().run(MovieQueries.movies.insertOrUpdate(toMovieDB(movie)).map(_ == 1)))
   }
 
   private def toMovieDB(movie: Movie): MovieDB = {
@@ -76,4 +69,6 @@ class SlickMoviesRepository(
     val category = CategoryType.values.find(category => category.toString == movie.category).getOrElse(CategoryType.OTHER)
     Movie(movie.id, movie.name, movie.description, category, movie.createDate.toInstant)
   }
+
+  private def waitForResult[T](future: Future[T]): T = Await.result(future, 10.seconds)
 }

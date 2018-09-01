@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 @Component
 class SlickReviewsRepository(
@@ -22,37 +22,31 @@ class SlickReviewsRepository(
   import profile.api._
 
   override def getByMovieId(movieId: String): List[Review] = {
-    Await.result(
+    waitForResult(
       dBProvider().run(
         ReviewQueries.findOneQuery(movieId).result
-      ).map(reviews => reviews.map(toReview).toList),
-      10.seconds
+      ).map(reviews => reviews.map(toReview).toList)
     )
   }
 
   override def getByMovieIds(movieIds: List[String]): List[Review] = {
-    Await.result(
+    waitForResult(
       dBProvider().run(
         ReviewQueries.reviews.result
-      ).map(reviews => reviews.filter(review => movieIds.contains(review.movieId)).map(toReview).toList),
-      10.seconds
+      ).map(reviews => reviews.filter(review => movieIds.contains(review.movieId)).map(toReview).toList)
     )
   }
 
   override def getOrderedByCreateDate(limit: Int): List[Review] = {
-    Await.result(
-    dBProvider().run(
-      ReviewQueries.findOrdered(limit).result
-    ).map(reviews => reviews.map(toReview).toList),
-      10.seconds
+    waitForResult(
+      dBProvider().run(
+        ReviewQueries.findOrdered(limit).result
+      ).map(reviews => reviews.map(toReview).toList)
     )
   }
 
   override def create(review: Review): Boolean = {
-    Await.result(
-      dBProvider().run(ReviewQueries.reviews.insertOrUpdate(toReviewDB(review)).map(_ == 1)),
-      10.seconds
-    )
+    waitForResult(dBProvider().run(ReviewQueries.reviews.insertOrUpdate(toReviewDB(review)).map(_ == 1)))
   }
 
   private def toReviewDB(review: Review): ReviewDB = {
@@ -62,4 +56,6 @@ class SlickReviewsRepository(
   private def toReview(review: ReviewDB): Review = {
     Review(review.id, review.movieId, review.rate, review.description, review.createDate.toInstant)
   }
+
+  private def waitForResult[T](future: Future[T]): T = Await.result(future, 10.seconds)
 }
